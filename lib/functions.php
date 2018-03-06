@@ -2,9 +2,12 @@
 
 // Database
 define('DB_ADDRESS', 'localhost');
-define('DB_USERNAME', 'werewolf_tBucket');
-define('DB_PASSWORD', '4yH92ROV*}FWU}yA3h7|A9me`bPC7?UssJIAc3"(77logyREp_pQnQFXJviyF]Vq');
-define('DB_DATABASE', 'werewolf_tandyeBucket');
+// define('DB_USERNAME', 'werewolf_tBucket');
+// define('DB_PASSWORD', '4yH92ROV*}FWU}yA3h7|A9me`bPC7?UssJIAc3"(77logyREp_pQnQFXJviyF]Vq');
+// define('DB_DATABASE', 'werewolf_tandyeBucket');
+define('DB_USERNAME', 'root');
+define('DB_PASSWORD', '');
+define('DB_DATABASE', 'tandyeBucketDev');
 
 /**
 * List bucket's files

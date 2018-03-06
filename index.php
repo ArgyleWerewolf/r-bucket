@@ -120,7 +120,7 @@ if ($_POST) {
       $uploadError = true;
       $uploadErrorMessage = $e->getMessage();
     }
-  
+
   // delete
   } elseif (isset($_POST['delete']) && isset($_POST['s3key']) && $_SESSION['loggedin']) {
     try {
@@ -166,9 +166,9 @@ if ($_POST) {
       <h1><?php echo SITE_TITLE; ?></h1>
     </div>
     <div class="small-4 cell text-right">
-    <?php if ($_SESSION['loggedin']) { ?>
+    <?php if (isset($_SESSION['loggedin'])) { ?>
       <form action="index.php" method="post">
-        <input type="hidden" name="logout" value="1" />  
+        <input type="hidden" name="logout" value="1" />
         <br />
         <input class="button tiny warning" value="Log Out" type="submit">
       </form>
@@ -176,31 +176,31 @@ if ($_POST) {
     </div>
   </div>
 
-  <?php if ($_SESSION['loggedin']) { ?>
+  <?php if (isset($_SESSION['loggedin'])) { ?>
 
   <div class="grid-x grid-padding-x">
     <div class="small-6 cell">
 
       <?php if ($uploadError) { ?>
-      <div class="callout alert">  
+      <div class="callout alert">
         <span><?php echo $uploadErrorMessage; ?></span>
       </div>
       <?php } ?>
 
       <?php if ($uploadSuccess) { ?>
-      <div class="callout success">  
+      <div class="callout success">
         <span><?php echo $uploadSuccessMessage; ?></span>
       </div>
       <?php } ?>
 
       <?php if ($deleteError) { ?>
-      <div class="callout alert">  
+      <div class="callout alert">
         <span><?php echo $deleteErrorMessage; ?></span>
       </div>
       <?php } ?>
 
       <?php if ($deleteSuccess) { ?>
-      <div class="callout success">  
+      <div class="callout success">
         <span><?php echo $deleteSuccessMessage; ?></span>
       </div>
       <?php } ?>
@@ -248,18 +248,18 @@ if ($_POST) {
     <div class="small-6 cell">
 
       <?php if ($loginError) { ?>
-      <div class="callout alert">  
+      <div class="callout alert">
         <span>Wrong credentials.</span>
       </div>
       <?php } ?>
       <form action="index.php" method="post">
         <input type="hidden" name="login" value="1" />
-        
+
         <label for="username">Username</label>
-        <input id="username" name="username" type="text" value="<?php echo $_POST["username"]; ?>" maxlength="255" />
+        <input id="username" name="username" type="text" value="<?php echo (isset($_POST["username"])) ? $_POST["username"] : ''; ?>" maxlength="255" />
 
         <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="off" value="<?php echo $_POST["password"]; ?>" maxlength="255" />
+        <input id="password" name="password" type="password" autocomplete="off" value="<?php echo (isset($_POST["password"])) ? $_POST["password"] : ''; ?>" maxlength="255" />
 
         <button class="button" type="submit">Sign In</button>
       </form>
