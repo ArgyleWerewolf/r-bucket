@@ -61,7 +61,20 @@ function storeImageRecord($fileName, $safeName) {
 function listRecentUploads() {
     $results = array();
     $mysqli = open_db();
-    $query = $mysqli->query("SELECT id, filename, s3key FROM bucket ORDER BY uploadedWhen LIMIT 200");
+    $query = $mysqli->query("SELECT id, filename, s3key FROM bucket ORDER BY uploadedWhen DESC LIMIT 200");
+	if ($query->num_rows > 0) {
+        while($row = $query->fetch_assoc()){
+            $results[] = $row;
+        }
+	}
+	mysqli_close($mysqli);
+	return $results;
+}
+
+function listUploadsInFolderId( $inFolderId = 0 ) {
+    $results = array();
+    $mysqli = open_db();
+    $query = $mysqli->query("SELECT id, filename, s3key FROM bucket WHERE inFolderId = '$inFolderId' ORDER BY uploadedWhen DESC LIMIT 200");
 	if ($query->num_rows > 0) {
         while($row = $query->fetch_assoc()){
             $results[] = $row;
@@ -86,6 +99,78 @@ function deleteImageRecord($id) {
     $results = $mysqli->query("DELETE FROM bucket WHERE bucket.id = '$id' LIMIT 1");
 	mysqli_close($mysqli);
 	return $results;
+}
+
+function getFolderData( $folderId ) {
+    $mysqli = open_db();
+    $query = $mysqli->query("SELECT id, folderName, inFolderId from folders WHERE folders.id = '$folderId' LIMIT 1");
+	if ($query->num_rows > 0) {
+        return $query->fetch_assoc();
+    }
+    return array();
+}
+
+function listFoldersInFolderId( $inFolderId = 0 ) {
+    $results = array();
+    $mysqli = open_db();
+    $query = $mysqli->query("SELECT id, folderName FROM folders WHERE inFolderId = '$inFolderId' ORDER BY folderName LIMIT 200");
+	if ($query->num_rows > 0) {
+        while($row = $query->fetch_assoc()){
+            $results[] = $row;
+        }
+	}
+	mysqli_close($mysqli);
+	return $results;
+}
+
+function getFolderTree() {
+    $results = array();
+    $mysqli = open_db();
+    $query = $mysqli->query("SELECT id, folderName FROM folders WHERE inFolderId = 0 ORDER BY folderName LIMIT 200");
+    if ($query->num_rows > 0) {
+        while($row = $query->fetch_assoc()){
+            $results[$row['id']] = $row;
+        }
+    }
+    mysqli_close($mysqli);
+    return $results;
+}
+
+function renderFoldersSelectBox() {
+    $html = '<select id="folders" name="folders" class="input-group-field">';
+    $folderTree = getFolderTree();
+    foreach($folderTree as $folder) {
+        $html .= '<option value="'. $folder['id'] . '">' . $folder['folderName'] . '</option>';
+        $children = listFoldersInFolderId($folder['id']);
+        if (count($children) > 0) {
+            foreach($children as $child) {
+                $html .= '<option value="'. $child['id'] . '">&nbsp;&nbsp;&nbsp;&nbsp;' . $child['folderName'] . '</option>';
+            }
+        }
+    }
+    $html .= '</select>';
+    echo $html;
+}
+
+function renderUploadCard($upload) {
+    $html = '<div class="cell">';
+    $html.='<div class="card">';
+    $html.='<a href="' . BUCKET_URL . $upload['s3key'] . '" target="_blank" class="uploadThumbnail">';
+    $html.='<img src="thumbnails/' . str_replace('.png', '.jpg', $upload['s3key']) . '" />';
+    $html.='</a>';
+    $html.='<div class="card-section uploadActions">';
+    $html.='<input type="text" value="' . BUCKET_URL . $upload['s3key'] . '" />';
+        $html.='<form action="index.php" method="post">';
+        $html.='<input type="hidden" name="delete" value="' . $upload['id'] . '" />';
+        $html.='<input type="hidden" name="s3key" value="'. $upload['s3key'] . ' " />';
+    $html.='<button class="tiny" value="Delete" type="submit">';
+    $html.='<i class="fa fa-trash" aria-hidden="true"></i>';
+    $html.='</button>';
+    $html.='</form>';
+    $html.='</div>';
+    $html.='</div>';
+    $html.='</div>';
+    echo $html;
 }
 
 ?>

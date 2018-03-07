@@ -1,24 +1,7 @@
 <?php
 session_start();
 
-// Presentation
-define('SITE_TITLE', 'Tandye Bucket');
-define('BUCKET_URL', 'https://s3-us-west-2.amazonaws.com/tandye-art-bucket/');
-
-// AWS access info
-define('ACCESS_KEY', 'AKIAI5FZWZLA67ZXCOUA');
-define('SECRET_KEY', '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');
-define('BUCKET_NAME', 'tandye-art-bucket');
-define('USER_NAME', 'tandye');
-define('USER_PASS', '7e098c088fe9aa89a9dbbae9d14333b21948a5df');
-
-// Thumbnails
-define('THUMBNAIL_DIR', 'thumbnails');
-define('THUMBNAIL_MAX_DIM', 600);
-define('THUMBNAIL_QUALITY', 75);
-
-require_once('lib/functions.php');
-require_once('lib/S3.php');
+require_once('settings.php');
 
 $s3 = new S3(ACCESS_KEY, SECRET_KEY);
 $loginError = false;
@@ -30,11 +13,27 @@ $deleteError = false;
 $deleteErrorMessage = '';
 $deleteSuccess = false;
 $deleteSuccessMessage = '';
+$thisFolderId = 0;
+$thisFolderData = array(
+    "id" => 0,
+    "folderName" => "Tandye Bucket",
+    "inFolderId" => 0
+);
+
+if ($_GET) {
+  if (isset($_GET["folderId"]) && true === is_numeric($_GET['folderId'])) {
+    $thisFolderId = $_GET['folderId'];
+    $requestedFolderData = getFolderData($thisFolderId);
+    if (count($requestedFolderData) > 0) {
+      $thisFolderData = $requestedFolderData;
+    }
+  }
+}
 
 if ($_POST) {
 
   // authenticate
-  if ($_POST["login"] ) {
+  if (isset($_POST["login"])) {
     if (trim($_POST["username"]) == USER_NAME &&  sha1($_POST["password"]) == USER_PASS) {
       $_SESSION['loggedin'] = true;
     } else {
@@ -157,6 +156,8 @@ if ($_POST) {
 <html>
 <head>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/css/foundation.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
+  <link rel="stylesheet" href="styles.css" />
   <title><?php echo SITE_TITLE; ?></title>
 </head>
 <body>
@@ -167,7 +168,7 @@ if ($_POST) {
     </div>
     <div class="small-4 cell text-right">
     <?php if (isset($_SESSION['loggedin'])) { ?>
-      <form action="index.php" method="post">
+      <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
         <input type="hidden" name="logout" value="1" />
         <br />
         <input class="button tiny warning" value="Log Out" type="submit">
@@ -180,7 +181,6 @@ if ($_POST) {
 
   <div class="grid-x grid-padding-x">
     <div class="small-6 cell">
-
       <?php if ($uploadError) { ?>
       <div class="callout alert">
         <span><?php echo $uploadErrorMessage; ?></span>
@@ -205,7 +205,7 @@ if ($_POST) {
       </div>
       <?php } ?>
 
-      <form action="index.php" method="post" enctype="multipart/form-data">
+      <form action="<?php echo UPLOAD_ACTION; ?>" method="post" enctype="multipart/form-data">
         <input type="hidden" name="upload" value="1" />
         <input id="file" type="file" name="file" />
         <input class="button success" value="Upload File" type="submit">
@@ -213,60 +213,94 @@ if ($_POST) {
     </div>
   </div>
 
-  <hr />
+  <div class="grid-x grid-padding-x">
 
-  <div class="grid-x grid-padding-x small-up-2 medium-up-4">
-    <?php
-      $recentUploads = listRecentUploads();
-      if (count($recentUploads) > 0) {
-        foreach($recentUploads as $upload) {
-    ?>
-    <div class="cell">
-      <div class="card">
-        <a href="<?php echo BUCKET_URL . $upload['s3key']; ?>" target="_blank">
-          <img src="thumbnails/<?php echo str_replace('.png', '.jpg', $upload['s3key']); ?>" />
-        </a>
-        <div class="card-section">
-          <input type="text" value="<?php echo BUCKET_URL . $upload['s3key']; ?>" />
-          <form action="index.php" method="post">
-            <input type="hidden" name="delete" value="<?php echo $upload['id']; ?>" />
-            <input type="hidden" name="s3key" value="<?php echo $upload['s3key']; ?>" />
-            <input class="button tiny warning" value="Delete" type="submit" />
+    <div class="small-6 medium-3 large-2 cell">
+      <h4>Folders</h4>
+      <ul>
+        <li><a href="./"><?php echo SITE_TITLE; ?></a></li>
+      <?php
+        $rootFolders = listFoldersInFolderId();
+        if (count($rootFolders) > 0) {
+          foreach($rootFolders as $folder) {
+      ?>
+          <li><a href="?folderId=<?php echo $folder['id']; ?>"><?php echo $folder['folderName']; ?></a></li>
+      <?php
+          }
+        }
+      ?>
+      </ul>
+
+      <hr />
+
+      <p><a href="folder.php">Add New</a></p>
+
+    </div>
+
+    <div class="small-6 medium-9 large-10 cell">
+
+      <h2><?php echo $thisFolderData["folderName"]; ?></h2>
+
+      <fieldset style="display:none;">
+        <div>
+          <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
+            <input type="hidden" name="multiMove" value="1" />
+            <div class="input-group">
+            <span class="input-group-label">Move selected to</span>
+            <?php renderFoldersSelectBox(); ?>
+            <div class="input-group-button">
+              <input type="submit" class="button" value="Submit">
+            </div>
+          </div>
+        </form>
+      </fieldset>
+
+      <hr />
+
+      <div class="grid-x grid-padding-x small-up-2 medium-up-4">
+        <?php
+          $uploads = listUploadsInFolderId($thisFolderId);
+          if (count($uploads) > 0) {
+            foreach($uploads as $upload) {
+              renderUploadCard($upload);
+            }
+          } else {
+        ?>
+          <div class="cell">
+            <p>This folder is empty.</p>
+          </div>
+        <?php
+          }
+        ?>
+      </div>
+
+<? } else { ?>
+
+      <div class="grid-x grid-padding-x">
+        <div class="small-6 cell">
+
+          <?php if ($loginError) { ?>
+          <div class="callout alert">
+            <span>Wrong credentials.</span>
+          </div>
+          <?php } ?>
+          <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
+            <input type="hidden" name="login" value="1" />
+
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" value="<?php echo (isset($_POST["username"])) ? $_POST["username"] : ''; ?>" maxlength="255" />
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="off" value="<?php echo (isset($_POST["password"])) ? $_POST["password"] : ''; ?>" maxlength="255" />
+
+            <button class="button" type="submit">Sign In</button>
           </form>
         </div>
       </div>
-    </div>
-    <?php
-        }
-      }
-    ?>
-  </div>
 
-  <? } else { ?>
-
-  <div class="grid-x grid-padding-x">
-    <div class="small-6 cell">
-
-      <?php if ($loginError) { ?>
-      <div class="callout alert">
-        <span>Wrong credentials.</span>
-      </div>
-      <?php } ?>
-      <form action="index.php" method="post">
-        <input type="hidden" name="login" value="1" />
-
-        <label for="username">Username</label>
-        <input id="username" name="username" type="text" value="<?php echo (isset($_POST["username"])) ? $_POST["username"] : ''; ?>" maxlength="255" />
-
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password" autocomplete="off" value="<?php echo (isset($_POST["password"])) ? $_POST["password"] : ''; ?>" maxlength="255" />
-
-        <button class="button" type="submit">Sign In</button>
-      </form>
+      <? } ?>
     </div>
   </div>
-
-  <? } ?>
 
 </div>
 </body>
