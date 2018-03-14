@@ -30,8 +30,10 @@ if ($_GET) {
   }
 }
 
-if ($_POST) {
+require_once('inc/header.php');
 
+// $_POST actions
+if ($_POST) {
   // authenticate
   if (isset($_POST["login"])) {
     if (trim($_POST["username"]) == USER_NAME &&  sha1($_POST["password"]) == USER_PASS) {
@@ -148,160 +150,70 @@ if ($_POST) {
     }
 
   }
-
 }
-
 ?>
 
-<html>
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/6.4.1/css/foundation.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" />
-  <link rel="stylesheet" href="styles.css" />
-  <title><?php echo SITE_TITLE; ?></title>
-</head>
-<body>
 <div class="grid-container">
-  <div class="grid-x grid-padding-x">
-    <div class="small-8 cell">
-      <h1><?php echo SITE_TITLE; ?></h1>
-    </div>
-    <div class="small-4 cell text-right">
-    <?php if (isset($_SESSION['loggedin'])) { ?>
-      <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
-        <input type="hidden" name="logout" value="1" />
-        <br />
-        <input class="button tiny warning" value="Log Out" type="submit">
-      </form>
-    <?php } ?>
-    </div>
-  </div>
 
   <?php if (isset($_SESSION['loggedin'])) { ?>
 
-  <div class="grid-x grid-padding-x">
-    <div class="small-6 cell">
-      <?php if ($uploadError) { ?>
-      <div class="callout alert">
-        <span><?php echo $uploadErrorMessage; ?></span>
+    <div class="grid-x grid-padding-x">
+      <div class="small-6 cell">
+        <?php
+          if ($uploadError) { renderCallout('alert', $uploadErrorMessage); }
+          if ($uploadSuccess) { renderCallout('success', $uploadSuccessMessage); }
+          if ($deleteError) { renderCallout('alert', $deleteErrorMessage); }
+          if ($deleteSuccess) { renderCallout('success', $deleteSuccessMessage); }
+          require_once('inc/upload-form.php');
+        ?>
       </div>
-      <?php } ?>
-
-      <?php if ($uploadSuccess) { ?>
-      <div class="callout success">
-        <span><?php echo $uploadSuccessMessage; ?></span>
-      </div>
-      <?php } ?>
-
-      <?php if ($deleteError) { ?>
-      <div class="callout alert">
-        <span><?php echo $deleteErrorMessage; ?></span>
-      </div>
-      <?php } ?>
-
-      <?php if ($deleteSuccess) { ?>
-      <div class="callout success">
-        <span><?php echo $deleteSuccessMessage; ?></span>
-      </div>
-      <?php } ?>
-
-      <form action="<?php echo UPLOAD_ACTION; ?>" method="post" enctype="multipart/form-data">
-        <input type="hidden" name="upload" value="1" />
-        <input id="file" type="file" name="file" />
-        <input class="button success" value="Upload File" type="submit">
-      </form>
     </div>
-  </div>
 
   <div class="grid-x grid-padding-x">
-
     <div class="small-6 medium-3 large-2 cell">
-      <h4>Folders</h4>
-      <ul>
-        <li><a href="./"><?php echo SITE_TITLE; ?></a></li>
       <?php
-        $rootFolders = listFoldersInFolderId();
-        if (count($rootFolders) > 0) {
-          foreach($rootFolders as $folder) {
+        require_once('inc/folders-list.php');
+        require_once('inc/logout-form.php');
       ?>
-          <li><a href="?folderId=<?php echo $folder['id']; ?>"><?php echo $folder['folderName']; ?></a></li>
-      <?php
-          }
-        }
-      ?>
-      </ul>
-
-      <hr />
-
-      <p><a href="folder.php">Add New</a></p>
-
     </div>
 
     <div class="small-6 medium-9 large-10 cell">
-
       <h2><?php echo $thisFolderData["folderName"]; ?></h2>
-
-      <fieldset style="display:none;">
-        <div>
-          <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
-            <input type="hidden" name="multiMove" value="1" />
-            <div class="input-group">
-            <span class="input-group-label">Move selected to</span>
-            <?php renderFoldersSelectBox(); ?>
-            <div class="input-group-button">
-              <input type="submit" class="button" value="Submit">
-            </div>
-          </div>
-        </form>
-      </fieldset>
-
+      <?php // require_once('inc/upload-action-form.php'); ?>
       <hr />
 
       <div class="grid-x grid-padding-x small-up-2 medium-up-4">
-        <?php
-          $uploads = listUploadsInFolderId($thisFolderId);
-          if (count($uploads) > 0) {
-            foreach($uploads as $upload) {
-              renderUploadCard($upload);
-            }
-          } else {
-        ?>
-          <div class="cell">
-            <p>This folder is empty.</p>
-          </div>
-        <?php
+      <?php
+        $uploads = listUploadsInFolderId($thisFolderId);
+        if (count($uploads) > 0) {
+          foreach($uploads as $upload) {
+            //renderUploadCard($upload);
+            include('inc/upload-card.php');
           }
-        ?>
-      </div>
-
-<? } else { ?>
-
-      <div class="grid-x grid-padding-x">
-        <div class="small-6 cell">
-
-          <?php if ($loginError) { ?>
-          <div class="callout alert">
-            <span>Wrong credentials.</span>
-          </div>
-          <?php } ?>
-          <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
-            <input type="hidden" name="login" value="1" />
-
-            <label for="username">Username</label>
-            <input id="username" name="username" type="text" value="<?php echo (isset($_POST["username"])) ? $_POST["username"] : ''; ?>" maxlength="255" />
-
-            <label for="password">Password</label>
-            <input id="password" name="password" type="password" autocomplete="off" value="<?php echo (isset($_POST["password"])) ? $_POST["password"] : ''; ?>" maxlength="255" />
-
-            <button class="button" type="submit">Sign In</button>
-          </form>
+        } else {
+      ?>
+        <div class="cell">
+          <p>This folder is empty.</p>
         </div>
+      <?php } ?>
       </div>
-
-      <? } ?>
     </div>
   </div>
 
+<? } else { ?>
+
+  <div class="grid-x grid-padding-x">
+    <div class="small-6 cell">
+      <h2>Log In</h2>
+      <?php
+        if ($loginError) { renderCallout('alert', 'Wrong credentials.'); }
+        require_once('inc/login-form.php');
+      ?>
+    </div>
+  </div>
+
+<? } ?>
+
 </div>
-</body>
-</html>
+
+<?php require_once('inc/footer.php'); ?>

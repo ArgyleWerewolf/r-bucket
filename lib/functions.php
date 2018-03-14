@@ -152,25 +152,8 @@ function renderFoldersSelectBox() {
     echo $html;
 }
 
-function renderUploadCard($upload) {
-    $html = '<div class="cell">';
-    $html.='<div class="card">';
-    $html.='<a href="' . BUCKET_URL . $upload['s3key'] . '" target="_blank" class="uploadThumbnail">';
-    $html.='<img src="thumbnails/' . str_replace('.png', '.jpg', $upload['s3key']) . '" />';
-    $html.='</a>';
-    $html.='<div class="card-section uploadActions">';
-    $html.='<input type="text" value="' . BUCKET_URL . $upload['s3key'] . '" />';
-        $html.='<form action="index.php" method="post">';
-        $html.='<input type="hidden" name="delete" value="' . $upload['id'] . '" />';
-        $html.='<input type="hidden" name="s3key" value="'. $upload['s3key'] . ' " />';
-    $html.='<button class="tiny" value="Delete" type="submit">';
-    $html.='<i class="fa fa-trash" aria-hidden="true"></i>';
-    $html.='</button>';
-    $html.='</form>';
-    $html.='</div>';
-    $html.='</div>';
-    $html.='</div>';
-    echo $html;
+function renderCallout($type, $message) {
+    echo '<div class="callout ' . $type . '"><span>' . $message . '</span></div>';
 }
 
 ?>
