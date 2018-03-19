@@ -1,6 +1,6 @@
 <fieldset>
   <div>
-    <form action="<?php echo UPLOAD_ACTION; ?>" method="post">
+    <form action="<?php echo PATH_INDEX; ?>" method="post">
       <input type="hidden" name="multiMove" value="1" />
       <div class="input-group">
       <span class="input-group-label">Move selected to</span>

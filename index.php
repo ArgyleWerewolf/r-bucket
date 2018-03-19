@@ -43,11 +43,10 @@ if ($_POST) {
     }
 
   // log out
-  } elseif (isset($_POST['logout']) && $_SESSION['loggedin']){
-    $_SESSION['loggedin'] = false;
-
+  } elseif (isset($_POST['logout']) && isset($_SESSION['loggedin'])){
+    session_unset();
   // upload
-  } elseif (isset($_POST['upload']) && $_SESSION['loggedin']){
+  } elseif (isset($_POST['upload']) && isset($_SESSION['loggedin'])){
     try {
       $fileName = $_FILES['file']['name'];
 
@@ -123,7 +122,7 @@ if ($_POST) {
     }
 
   // delete
-  } elseif (isset($_POST['delete']) && isset($_POST['s3key']) && $_SESSION['loggedin']) {
+  } elseif (isset($_POST['delete']) && isset($_POST['s3key']) && isset($_SESSION['loggedin'])) {
     try {
       if (false === is_numeric($_POST['delete'])) {
         throw new RuntimeException('Not a valid image ID.');
@@ -178,7 +177,15 @@ if ($_POST) {
     </div>
 
     <div class="small-6 medium-9 large-10 cell">
-      <h2><?php echo $thisFolderData["folderName"]; ?></h2>
+      <h2>
+        <?php echo $thisFolderData["folderName"]; ?>
+        <?php if (!$thisFolderData['id'] == 0) { ?>
+          <a href="folder.php?folderId=<?php echo $thisFolderData['id']; ?>">
+            <i class="fa fa-pencil" aria-hidden="true"></i>
+          </a>
+        <? } ?>
+      </h2>
+
       <?php // require_once('inc/upload-action-form.php'); ?>
       <hr />
 

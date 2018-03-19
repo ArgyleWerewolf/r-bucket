@@ -1,4 +1,4 @@
-<form action="<?php echo UPLOAD_ACTION; ?>" method="post">
+<form action="<?php echo PATH_INDEX; ?>" method="post">
   <input type="hidden" name="login" value="1" />
 
   <label for="username">Username</label>

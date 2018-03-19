@@ -123,28 +123,31 @@ function listFoldersInFolderId( $inFolderId = 0 ) {
 	return $results;
 }
 
-function getFolderTree() {
-    $results = array();
-    $mysqli = open_db();
-    $query = $mysqli->query("SELECT id, folderName FROM folders WHERE inFolderId = 0 ORDER BY folderName LIMIT 200");
-    if ($query->num_rows > 0) {
-        while($row = $query->fetch_assoc()){
-            $results[$row['id']] = $row;
-        }
-    }
-    mysqli_close($mysqli);
-    return $results;
-}
+function selectOp($folderId, $selectedId) {
+    return ($folderId === $selectedId) ? ' selected ' : '';
+};
 
-function renderFoldersSelectBox() {
-    $html = '<select id="folders" name="folders" class="input-group-field">';
-    $folderTree = getFolderTree();
+function renderFoldersSelectBox($permitGrandchilden = false, $selectedFolderId = 0, $omitFolderId = null) {
+    // die($omitFolderId);
+    $html = '<select id="selectedFolder" name="selectedFolder">';
+    $folderTree = listFoldersInFolderId(0);
+    $html .= '<option value="0" ' . selectOp(0, $selectedFolderId) . '>Top Level</option>';
     foreach($folderTree as $folder) {
-        $html .= '<option value="'. $folder['id'] . '">' . $folder['folderName'] . '</option>';
+        if ($omitFolderId !== $folder['id']) {
+            $html .= '<option value="'. $folder['id'] . '"'. selectOp($folder['id'], $selectedFolderId) .'>' . $folder['folderName'] . '</option>';
+        }
         $children = listFoldersInFolderId($folder['id']);
-        if (count($children) > 0) {
+        if (count($children) > 0 && $omitFolderId !== $folder['id']) {
             foreach($children as $child) {
-                $html .= '<option value="'. $child['id'] . '">&nbsp;&nbsp;&nbsp;&nbsp;' . $child['folderName'] . '</option>';
+                $html .= '<option value="'. $child['id'] . '"'. selectOp($child['id'], $selectedFolderId) .'>&nbsp;&nbsp;&nbsp;&nbsp;' . $child['folderName'] . '</option>';
+                if ($permitGrandchilden) {
+                    $grandchildren = listFoldersInFolderId($child['id']);
+                    if (count($grandchildren) > 0) {
+                        foreach($grandchildren as $grandchild) {
+                            $html .= '<option value="'. $grandchild['id'] . '"'. selectOp($grandchild['id'], $selectedFolderId) .'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . $grandchild['folderName'] . '</option>';
+                        }
+                    }
+                }
             }
         }
     }
@@ -154,6 +157,35 @@ function renderFoldersSelectBox() {
 
 function renderCallout($type, $message) {
     echo '<div class="callout ' . $type . '"><span>' . $message . '</span></div>';
+}
+
+function sanitizeString($string) {
+    $mysqli = open_db();
+    $result = $mysqli->real_escape_string(trim(strip_tags($string)));
+    mysqli_close($mysqli);
+    return $result;
+}
+
+function validFolderName($folderName) {
+    return strlen($folderName) > 0;
+}
+
+function storeNewFolder($folderName, $inFolderId) {
+    $mysqli = open_db();
+    $result = $mysqli->query("INSERT INTO folders (id, folderName, inFolderId) VALUES (NULL, '$folderName', '$inFolderId');");
+    if ($result) {
+        $id = $mysqli->insert_id;
+        mysqli_close($mysqli);
+        return $id;
+    }
+    return false;
+}
+
+function updateFolder($folderName, $inFolderId, $folderId) {
+    $mysqli = open_db();
+    $result = $mysqli->query("UPDATE folders SET folderName = '$folderName', inFolderId = '$inFolderId' WHERE folders.id = '$folderId';");
+    mysqli_close($mysqli);
+    return $result;
 }
 
 ?>
