@@ -49,6 +49,11 @@ if ($_POST) {
   } elseif (isset($_POST['upload']) && isset($_SESSION['loggedin'])){
     try {
       $fileName = $_FILES['file']['name'];
+      $inFolderId = $_POST['inFolderId'];
+
+      if ( false === count(getFolderData($inFolderId)) > 0 && $inFolderId !== '0') {
+        throw new RuntimeException('Invalid destination folder specified.');
+      }
 
       if (!isset($_FILES['file']['error']) || is_array($_FILES['file']['error'])) {
         throw new RuntimeException('Invalid parameters.');
@@ -104,7 +109,7 @@ if ($_POST) {
       imagedestroy( $dst );
 
       // save image record to db
-      if (false === storeImageRecord($fileName, $safeName)) {
+      if (false === storeImageRecord($fileName, $safeName, $inFolderId)) {
         throw new RuntimeException('Couldn\'t store the image record.');
       }
 
