@@ -153,6 +153,10 @@ if ($_POST) {
       $deleteErrorMessage = $e->getMessage();
     }
 
+  } elseif (isset($_POST['multiMove'])) {
+    var_dump($_POST['multiMoveIds']);
+  } elseif (isset($_POST['multiDelete'])) {
+    var_dump($_POST['multiDeleteIds']);
   }
 }
 ?>
@@ -161,17 +165,7 @@ if ($_POST) {
 
   <?php if (isset($_SESSION['loggedin'])) { ?>
 
-    <div class="grid-x grid-padding-x">
-      <div class="small-6 cell">
-        <?php
-          if ($uploadError) { renderCallout('alert', $uploadErrorMessage); }
-          if ($uploadSuccess) { renderCallout('success', $uploadSuccessMessage); }
-          if ($deleteError) { renderCallout('alert', $deleteErrorMessage); }
-          if ($deleteSuccess) { renderCallout('success', $deleteSuccessMessage); }
-          require_once('inc/upload-form.php');
-        ?>
-      </div>
-    </div>
+  <?php require_once('inc/upload-form.php'); ?>
 
   <div class="grid-x grid-padding-x">
     <div class="small-6 medium-3 large-2 cell">
@@ -191,7 +185,7 @@ if ($_POST) {
         <? } ?>
       </h2>
 
-      <?php // require_once('inc/upload-action-form.php'); ?>
+      <?php require_once('inc/upload-action-form.php'); ?>
       <hr />
 
       <div class="grid-x grid-padding-x small-up-2 medium-up-4">
