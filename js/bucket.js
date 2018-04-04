@@ -14,10 +14,8 @@ document.addEventListener("DOMContentLoaded", function (event) {
         })
       }
       if (idsToProcess.length > 0) {
-        console.log('show actions');
         uploadMultiActions.classList.remove('hide');
       } else {
-        console.log('hide actions');
         uploadMultiActions.classList.add('hide');
       }
       multiIdHolders.forEach(function (holder) {

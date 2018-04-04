@@ -188,4 +188,22 @@ function updateFolder($folderName, $inFolderId, $folderId) {
     return $result;
 }
 
+function idListToArray($list) {
+    return array_filter(explode(',', $list), "is_numeric");
+}
+
+function moveUploadIdsToFolderId($moveIds, $toFolderId) {
+    $results = [];
+    $mysqli = open_db();
+    foreach($moveIds as $id) {
+        $thisResult = $mysqli->query("UPDATE bucket SET inFolderId = '$toFolderId' WHERE bucket.id = '$id' LIMIT 1;");
+        if (false === $thisResult) {
+            throw new RuntimeException('Couldn\'t move image ID ' . $id . ' because something went wrong.');
+        }
+        $results[] = $thisResult;
+    }
+    mysqli_close($mysqli);
+    return $results;
+}
+
 ?>

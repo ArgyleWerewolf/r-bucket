@@ -13,6 +13,10 @@ $deleteError = false;
 $deleteErrorMessage = '';
 $deleteSuccess = false;
 $deleteSuccessMessage = '';
+$multiError = false;
+$multiErrorMessage = '';
+$multiSuccess = false;
+$multiSuccessMessage = '';
 $thisFolderId = 0;
 $thisFolderData = array(
     "id" => 0,
@@ -152,11 +156,44 @@ if ($_POST) {
       $deleteError = true;
       $deleteErrorMessage = $e->getMessage();
     }
-
+  // multi-move
   } elseif (isset($_POST['multiMove'])) {
-    var_dump($_POST['multiMoveIds']);
+    $moveIds = idListToArray($_POST['multiMoveIds']);
+    $toFolderId = $_POST['selectedFolder'];
+
+    try {
+
+      if ($thisFolderData['id'] == $toFolderId) {
+        throw new RuntimeException('Can\'t move images to a folder they\'re already in. Well, it\'s <em>possible</em>, but why would you want to?');
+      }
+
+      if (count($moveIds) < 1) {
+        throw new RuntimeException('Couldn\'t find any valid image IDs to move.');
+      }
+
+      if (false === count(getFolderData($toFolderId)) > 0 && $toFolderId !== '0') {
+        throw new RuntimeException('Invalid destination folder specified.');
+      }
+
+      if (count(moveUploadIdsToFolderId($moveIds, $toFolderId)) !== count($moveIds)) {
+        throw new RuntimeException('Some images couldn\'t be moved because of an error.');
+      }
+
+      if ($toFolderId > 0) {
+        $destinationFolderPath = PATH_INDEX . "?folderId=" . $toFolderId;
+      } else {
+        $destinationFolderPath = PATH_INDEX;
+      }
+      $multiSuccess = true;
+      $multiSuccessMessage = 'The images were successfully moved to the <a href="' . $destinationFolderPath . '">folder you chose</a>.';
+    } catch (RuntimeException $e) {
+      $multiError = true;
+      $multiErrorMessage = $e->getMessage();
+    }
+
+  // multi-delete
   } elseif (isset($_POST['multiDelete'])) {
-    var_dump($_POST['multiDeleteIds']);
+    $deleteIds = idListToArray($_POST['multiDeleteIds']);
   }
 }
 ?>
