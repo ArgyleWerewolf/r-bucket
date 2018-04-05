@@ -194,6 +194,43 @@ if ($_POST) {
   // multi-delete
   } elseif (isset($_POST['multiDelete'])) {
     $deleteIds = idListToArray($_POST['multiDeleteIds']);
+    $deleted = [];
+
+    try {
+
+      if (count($deleteIds) < 1) {
+        throw new RuntimeException('Couldn\'t find any valid image IDs to delete.');
+      }
+
+      foreach($deleteIds as $id) {
+
+        $d = getUploadDetails($id);
+
+        // delete thumbnail
+        if (false === deleteImageThumbnail($id)) {
+          throw new RuntimeException('Couldn\'t delete the image thumbnail.');
+        }
+
+        $s3->deleteObject(BUCKET_NAME, baseName($d['s3key']));
+
+        // delete DB entry
+        if (false === deleteImageRecord($id)) {
+          throw new RuntimeException('Couldn\'t delete the database record.');
+        }
+
+        $deleted[] = $id;
+      }
+
+      if (count($deleted) !== count($deleteIds)) {
+        throw new RuntimeException('Some images couldn\'t be deleted because of an error.');
+      }
+
+      $multiSuccess = true;
+      $multiSuccessMessage = 'The images were successfully deleted.';
+    } catch (RuntimeException $e) {
+      $multiError = true;
+      $multiErrorMessage = $e->getMessage();
+    }
   }
 }
 ?>
@@ -230,7 +267,6 @@ if ($_POST) {
         $uploads = listUploadsInFolderId($thisFolderId);
         if (count($uploads) > 0) {
           foreach($uploads as $upload) {
-            //renderUploadCard($upload);
             include('inc/upload-card.php');
           }
         } else {

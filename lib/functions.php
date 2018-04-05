@@ -84,6 +84,14 @@ function listUploadsInFolderId( $inFolderId = 0 ) {
 	return $results;
 }
 
+function getUploadDetails($id) {
+    $mysqli = open_db();
+    $query = $mysqli->query("SELECT id, filename, s3key FROM bucket WHERE bucket.id = '$id' LIMIT 1");
+    $row = $query->fetch_assoc();
+    mysqli_close($mysqli);
+    return $row;
+}
+
 function deleteImageThumbnail($id) {
     $mysqli = open_db();
     $query = $mysqli->query("SELECT s3key FROM bucket WHERE bucket.id = '$id' LIMIT 1");
@@ -128,7 +136,6 @@ function selectOp($folderId, $selectedId) {
 };
 
 function renderFoldersSelectBox($permitGrandchilden = false, $selectedFolderId = 0, $omitFolderId = null) {
-    // die($omitFolderId);
     $html = '<select id="selectedFolder" name="selectedFolder">';
     $folderTree = listFoldersInFolderId(0);
     $html .= '<option value="0" ' . selectOp(0, $selectedFolderId) . '>Top Level</option>';
