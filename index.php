@@ -93,6 +93,10 @@ if ($_POST) {
       $tempFile = $_FILES['file']['tmp_name'];
       $safeName = sha1_file($tempFile) . "." . $ext;
 
+      if (true === thumbnailAlreadyExists($safeName)) {
+          throw new RuntimeException('An image with these exact contents already exists. You cannot upload the same image more than once.');
+      }
+
       // process thumbnail
       list($width, $height, $type, $attr) = getimagesize( $tempFile );
       $ratio = $width/$height;

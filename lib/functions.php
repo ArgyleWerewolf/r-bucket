@@ -213,4 +213,15 @@ function moveUploadIdsToFolderId($moveIds, $toFolderId) {
     return $results;
 }
 
+function thumbnailAlreadyExists($safeName) {
+    $mysqli = open_db();
+    $query = $mysqli->query("SELECT id, filename, s3key FROM bucket WHERE bucket.s3key = '$safeName';");
+    $row = $query->fetch_assoc();
+    mysqli_close($mysqli);
+    if ($row) {
+        return true;
+    }
+    return false;
+}
+
 ?>
