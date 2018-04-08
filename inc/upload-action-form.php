@@ -16,7 +16,7 @@ if ($multiSuccess) { renderCallout('success', $multiSuccessMessage); }
         <input type="hidden" name="multiMoveIds" class="multiIds" value="" />
         <div class="input-group">
           <div class="input-group-button">
-            <button class="button" type="submit" onclick="return confirm('Are you sure you want to move the selected item(s)?');">
+            <button class="button" type="submit">
               Move Selected <i class="fa fa-files-o" aria-hidden="true"></i>
             </button>
           </div>

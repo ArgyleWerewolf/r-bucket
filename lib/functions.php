@@ -224,4 +224,11 @@ function thumbnailAlreadyExists($safeName) {
     return false;
 }
 
+function deleteFolderId($folderId) {
+    $mysqli = open_db();
+    $results = $mysqli->query("DELETE FROM folders WHERE folders.id = '$folderId' LIMIT 1");
+	mysqli_close($mysqli);
+	return $results;
+}
+
 ?>

@@ -11,7 +11,9 @@ $s3 = new S3(ACCESS_KEY, SECRET_KEY);
 $newFolderError = false;
 $newFolderErrorMessage = '';
 $editFolderError = false;
-$ediFolderErrorMessage = '';
+$editFolderErrorMessage = '';
+$deleteFolderError = false;
+$deleteFolderErrorMessage = '';
 $editMode = false;
 $thisFolderId = 0;
 $thisFolderData = array(
@@ -99,6 +101,34 @@ if ($_POST) {
       $editFolderErrorMessage = $e->getMessage();
     }
   }
+
+  // delete a folder and move its contents (if there are any) to root
+  if (isset($_POST["deleteFolder"])) {
+    $folderId = $_POST["folderId"];
+    try {
+      $contents = listUploadsInFolderId($thisFolderData['id']);
+      if (count($contents) > 0) {
+        $moveIds = [];
+        forEach($contents as $c) {
+          $moveIds[] = $c['id'];
+        }
+        if (count(moveUploadIdsToFolderId($moveIds, '0')) !== count($moveIds)) {
+          throw new RuntimeException('Some images couldn\'t be moved because of an error.');
+        }
+      }
+
+      if (false === deleteFolderId($_POST["folderId"])) {
+        throw new RuntimeException('Couldn\'t delete the folder because of an error.');
+      }
+
+      header('Location: ' . PATH_INDEX . '?folderId=' . $storedFolder);
+      die();
+
+    } catch (RuntimeException $e) {
+      $deleteFolderError = true;
+      $deleteFolderErrorMessage = $e->getMessage();
+    }
+  }
 }
 
 require_once('inc/header.php');
@@ -122,18 +152,32 @@ require_once('inc/header.php');
       </h2>
       <hr />
 
-      <div class="grid-x grid-padding-x">
-        <div class="cell small-12 medium-6">
-          <?php
-            if ($editMode) {
+      <div class="grid-x grid-padding-x align-justify">
+        <?php if ($editMode) { ?>
+
+          <div class="cell small-12 medium-6">
+            <?php
               if ($editFolderError) { renderCallout('alert', $editFolderErrorMessage); }
               require_once('inc/edit-folder-form.php');
-            } else {
+            ?>
+          </div>
+          <div class="cell small-12 medium-4">
+            <?php
+              if ($deleteFolderError) { renderCallout('alert', $deleteFolderErrorMessage); }
+              require_once('inc/delete-folder-form.php');
+            ?>
+          </div>
+
+        <?php } else { ?>
+
+          <div class="cell small-12 medium-6">
+            <?php
               if ($newFolderError) { renderCallout('alert', $newFolderErrorMessage); }
               require_once('inc/new-folder-form.php');
-            }
-          ?>
-        </div>
+            ?>
+          </div>
+
+        <?php } ?>
       </div>
     </div>
   </div>
