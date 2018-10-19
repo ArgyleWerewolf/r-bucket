@@ -11,7 +11,14 @@ if ($thisFolderData['id'] > 0) {
       <img src="thumbnails/<?php echo str_replace('.png', '.jpg', $upload['s3key']); ?>" />
     </a>
     <div class="card-section uploadActions">
-      <input type="text" value="<?php echo BUCKET_URL . $upload['s3key']; ?>" />
+      <div class="input-group">
+        <span class="input-group-label">
+          <button class="tiny button--linker" value="Copy URL" type="submit" onclick="copyUrlFor('<?php echo $upload['id']; ?>');">
+            <i class="fa fa-link" aria-hidden="true"></i>
+          </button>
+        </span>
+        <input id="url-<?php echo $upload['id']; ?>" class="input-group-field input-url" type="text" value="<?php echo BUCKET_URL . $upload['s3key']; ?>" />
+      </div>
       <form action="<?php echo $deleteActionUrl; ?>" method="post">
         <input type="hidden" name="delete" value="<?php echo $upload['id']; ?>" />
         <input type="hidden" name="s3key" value="<?php echo $upload['s3key']; ?>" />

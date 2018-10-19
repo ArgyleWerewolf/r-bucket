@@ -38,3 +38,10 @@ function handleFiles(files) {
   }
 }
 
+function copyUrlFor(id) {
+  var copyText = document.getElementById("url-" + id);
+  copyText.select();
+  document.execCommand("copy");
+  copyText.classList.add("copied");
+  setTimeout(function () { copyText.classList.remove("copied"); }, 500);
+}

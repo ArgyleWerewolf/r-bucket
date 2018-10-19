@@ -117,8 +117,9 @@ if ($_POST) {
       imagedestroy( $dst );
 
       // save image record to db
-      if (false === storeImageRecord($fileName, $safeName, $inFolderId)) {
-        throw new RuntimeException('Couldn\'t store the image record.');
+      $imageStoreResult = storeImageRecord($fileName, $safeName, $inFolderId);
+      if (true !== $imageStoreResult) {
+        throw new RuntimeException('Couldn\'t store the image record. '. $imageStoreResult);
       }
 
       // upload file to S3

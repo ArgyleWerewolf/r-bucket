@@ -54,6 +54,9 @@ function open_db() {
 function storeImageRecord($fileName, $safeName, $inFolderId) {
     $mysqli = open_db();
     $result = $mysqli->query("INSERT INTO bucket (id, filename, s3key, uploadedWhen, inFolderId) VALUES (NULL, '$fileName', '$safeName', now(), '$inFolderId');");
+    if ($mysqli->error) {
+        $result = $mysqli->error;
+    }
     mysqli_close($mysqli);
     return $result;
 }
