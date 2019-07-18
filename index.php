@@ -2,6 +2,7 @@
 session_start();
 
 require_once('settings.php');
+require_once('credentials.php');
 
 $s3 = new S3(ACCESS_KEY, SECRET_KEY);
 $loginError = false;
@@ -40,7 +41,7 @@ require_once('inc/header.php');
 if ($_POST) {
   // authenticate
   if (isset($_POST["login"])) {
-    if (trim($_POST["username"]) == USER_NAME &&  sha1($_POST["password"]) == USER_PASS) {
+    if (trim($_POST["username"]) == USER_NAME && sha1($_POST["password"]) == sha1(USER_PASS)) {
       $_SESSION['loggedin'] = true;
     } else {
       $loginError = true;
